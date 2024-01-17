@@ -1,0 +1,9 @@
+﻿<component name="libraryTable">
+  <library name="guava">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.nuget/packages/xamarin.google.guava/32.0.1/jar/guava.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

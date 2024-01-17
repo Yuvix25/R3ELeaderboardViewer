@@ -1,0 +1,29 @@
+﻿
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:padding="50dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_centerInParent="true"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/hello_message"
+        android:layout_centerInParent="true"
+        android:textSize="20dp"
+        android:text="Hello! Please sign in from the sidebar."
+        android:layout_width="250dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="10dp"/>
+
+    <EditText
+        android:id="@+id/raceroom_username_input"
+        android:visibility="invisible"
+        android:inputType="text"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:textSize="17dp"
+        android:hint="Enter RaceRoom username here."/>
+
+</LinearLayout>

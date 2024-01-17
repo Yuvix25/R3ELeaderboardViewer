@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "342595903850",
+    "project_id": "r3e-leaderboard-viewer",
+    "storage_bucket": "r3e-leaderboard-viewer.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:342595903850:android:803247a9f3b8dca2528513",
+        "android_client_info": {
+          "package_name": "com.yuvix25.r3e_leaderboard_viewer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBk9STBikTS4ftYTiyQpHmLdMijwvypl0A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
