@@ -2,6 +2,6 @@
   <string name="app_name">R3E Leaderboard Viewer</string>
   <string name="navigation_drawer_open">Open navigation drawer</string>
   <string name="navigation_drawer_close">Close navigation drawer</string>
-  <string name="action_settings">Settings</string>
+  <string name="default_web_client_id">342595903850-ov63u6vea9ogo34qqsgd4t1eho0tbkdf.apps.googleusercontent.com</string>
   <string name="sign_in_with_google">Sign in with Google</string>
 </resources>

@@ -7,15 +7,13 @@ using Fragment = AndroidX.Fragment.App.Fragment;
 using AndroidX.AppCompat.App;
 using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
-using Firebase;
 using Google.Android.Material.Navigation;
 using R3ELeaderboardViewer.Fragments;
-using Android.Gms.Auth.Api.SignIn;
-using AndroidX.Activity.Result.Contract;
 using System.Threading.Tasks;
-using Android.Widget;
-using Android.Gms.Auth.Api;
 using AndroidX.Activity.Result;
+using R3ELeaderboardViewer.Firebase;
+using Android.Util;
+using AndroidX.Lifecycle;
 
 namespace R3ELeaderboardViewer
 {
@@ -27,21 +25,20 @@ namespace R3ELeaderboardViewer
         public void OnActivityResult(Java.Lang.Object p0) => _callback((ActivityResult)p0);
     }
 
-    [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true)]
+    [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar")]
     public class MainActivity : AppCompatActivity, NavigationView.IOnNavigationItemSelectedListener
     {
-        private MainFragment _mainFragment;
+        static readonly string TAG = "R3ELeaderboardViewer:" + typeof(MainActivity).Name;
 
-        private GoogleSignInOptions gso;
-        private GoogleSignInClient googleSignInClient;
-        public GoogleSignInAccount GoogleSignInAccount { get; private set; }
+        private MainFragment mainFragment;
+        private LeaderboardViewerFragment leaderboardViewerFragment;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
             SetContentView(Resource.Layout.activity_main);
-            
+
             var toolbar = FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
             SetSupportActionBar(toolbar);
 
@@ -53,52 +50,30 @@ namespace R3ELeaderboardViewer
             var navigationView = FindViewById<NavigationView>(Resource.Id.nav_view)!;
             navigationView.SetNavigationItemSelectedListener(this);
 
-
-            // firebase
-            FirebaseApp.InitializeApp(this);
-            LoadGoogleSignInAccount(GoogleSignIn.GetLastSignedInAccount(this));
-
-            // google sign in options
-            gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn)
-                .RequestIdToken("342595903850-ov63u6vea9ogo34qqsgd4t1eho0tbkdf.apps.googleusercontent.com")
-                .RequestEmail()
-                .Build();
-
-            // google sign in client
-            googleSignInClient = GoogleSignIn.GetClient(this, gso);
-            GoogleSignInAsync = PrepareGoogleSignIn();
+            mainFragment = new MainFragment();
+            leaderboardViewerFragment = new LeaderboardViewerFragment();
 
 
-            _mainFragment = new MainFragment();
-            
+            // Not the same as GotoFragment, using `Add` instead of `Replace`
             var transaction = SupportFragmentManager.BeginTransaction();
-            transaction.Add(Resource.Id.fragment_container, _mainFragment);
+            transaction.Add(Resource.Id.fragment_container, mainFragment);
+            transaction.Commit();
+
+
+            FirebaseManager.Initialize(this);
+        }
+
+        public void GotoFragment(Fragment fragment)
+        {
+            var transaction = SupportFragmentManager.BeginTransaction();
+            transaction.Replace(Resource.Id.fragment_container, fragment);
             transaction.Commit();
         }
 
-        public void LoadGoogleSignInAccount(GoogleSignInAccount googleSignInAccount)
+        public void GotoLeaderboardViewer(LeaderboardSnapshot snapshot)
         {
-            GoogleSignInAccount = googleSignInAccount;
-            _mainFragment?.UpdateHelloMessage();
-            _mainFragment?.SetRaceRoomUsernameInputVisibility(googleSignInAccount != null);
-        }
-
-        public Func<Task<GoogleSignInResult>> GoogleSignInAsync { get; private set; }
-        private Func<Task<GoogleSignInResult>> PrepareGoogleSignIn()
-        {
-            TaskCompletionSource<GoogleSignInResult> taskCompletionSource = null;
-            var activityResultLauncher = RegisterForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                new ActivityResultCallback(
-                    activityResult => taskCompletionSource?.SetResult(Auth.GoogleSignInApi.GetSignInResultFromIntent(activityResult.Data))
-                )
-            );
-
-            return () => {
-                taskCompletionSource = new TaskCompletionSource<GoogleSignInResult>();
-                activityResultLauncher.Launch(googleSignInClient.SignInIntent);
-                return taskCompletionSource.Task;
-            };
+            GotoFragment(leaderboardViewerFragment);
+            leaderboardViewerFragment.LoadSnapshot(snapshot);
         }
 
         public override void OnBackPressed()
@@ -132,7 +107,7 @@ namespace R3ELeaderboardViewer
             
             if (id == Resource.Id.nav_home)
             {
-                NavigateToFragment(_mainFragment);
+                NavigateToFragment(mainFragment);
             }
             else if (id == Resource.Id.nav_gallery)
             {
@@ -149,23 +124,11 @@ namespace R3ELeaderboardViewer
             else if (id == Resource.Id.nav_signin)
             {
                 // move to sign_in.xml:
-                _ = GoogleSignInAsync().ContinueWith(task =>
-                {
-                    var result = task.Result;
-
-                    Console.WriteLine(result.Status);
-                    if (result.IsSuccess)
-                    {
-                        var account = result.SignInAccount;
-                        LoadGoogleSignInAccount(account);
-                        Console.WriteLine("Signed in as " + account.DisplayName);
-                    }
-                });
+                FirebaseManager.GoogleSignInAsync();
             }
             else if (id == Resource.Id.nav_signout)
             {
-                googleSignInClient.SignOut();
-                LoadGoogleSignInAccount(null);
+                FirebaseManager.SignOut();
             }
 
             var drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout)!;

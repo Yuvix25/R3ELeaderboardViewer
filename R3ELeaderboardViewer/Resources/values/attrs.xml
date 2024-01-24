@@ -1,0 +1,24 @@
+<resources>
+  <declare-styleable name="LeaderboardView">
+    <attr name="leaderboardId" format="integer" />
+  </declare-styleable>
+
+  <declare-styleable name="LeaderboardEntryView">
+    <attr name="country_flag" format="reference" />
+    <attr name="profile_image" format="reference" />
+    <attr name="livery_image" format="reference" />
+    <attr name="position" format="integer" />
+    <attr name="uid" format="integer" />
+    <attr name="name" format="string" />
+    <attr name="laptime" format="string" />
+    <attr name="difficulty" format="enum">
+      <enum name="Unkown" value="-1" />
+      <enum name="GetReal" value="0" />
+      <enum name="Amateur" value="1" />
+      <enum name="Novice" value="2" />
+     </attr>
+    <attr name="team" format="string" />
+    <attr name="points" format="float" />
+    <attr name="timestamp" format="integer" />
+  </declare-styleable>
+</resources>

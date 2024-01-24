@@ -1,8 +1,9 @@
 ﻿
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:padding="50dp"
+    android:padding="20dp"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_centerInParent="true"
@@ -17,13 +18,58 @@
         android:layout_height="50dp"
         android:layout_marginBottom="10dp"/>
 
-    <EditText
-        android:id="@+id/raceroom_username_input"
-        android:visibility="invisible"
-        android:inputType="text"
+    <LinearLayout
+        android:id="@+id/raceroom_data"
+        android:visibility="visible"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:textSize="17dp"
-        android:hint="Enter RaceRoom username here."/>
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <EditText
+                android:id="@+id/raceroom_username_input"
+                android:inputType="text"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:textSize="17dp"
+                android:hint="RaceRoom username"/>
+
+            <Button
+                android:id="@+id/raceroom_username_save"
+                android:layout_width="80dp"
+                android:layout_height="50dp"
+                android:text="Save"/>
+
+            <ImageView
+                android:id="@+id/raceroom_username_valid"
+                android:contentDescription="fail/success"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_close"
+                android:tint="#ff0000"
+                android:layout_marginLeft="5dp"
+                />
+        </LinearLayout>
+
+
+
+        <ExpandableListView
+            android:id="@+id/home_leaderboard_elv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:dividerHeight="0dp"
+            android:childDivider="@android:color/transparent"
+            android:layoutDirection="rtl"
+            android:scrollbars="none"
+            />
+
+    </LinearLayout>
+
+
 
 </LinearLayout>
