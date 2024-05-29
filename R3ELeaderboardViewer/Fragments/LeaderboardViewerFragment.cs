@@ -2,6 +2,7 @@ using Android.OS;
 using Android.Support.V4.Widget;
 using Android.Util;
 using Android.Views;
+using Android.Widget;
 using R3ELeaderboardViewer.Firebase;
 using R3ELeaderboardViewer.Fragments;
 using R3ELeaderboardViewer.Views;
@@ -14,6 +15,7 @@ namespace R3ELeaderboardViewer
 
         private SwipeRefreshLayout SwipeRefreshLayout = null;
         private LeaderboardView LeaderboardView = null;
+        private ScrollView ScrollView = null;
 
         private delegate void LeaderboardViewLoadedDelegate(LeaderboardView view);
         private event LeaderboardViewLoadedDelegate OnLeaderboardViewLoaded = delegate { };
@@ -50,6 +52,7 @@ namespace R3ELeaderboardViewer
 
             SwipeRefreshLayout = view.FindViewById<SwipeRefreshLayout>(Resource.Id.leaderboard_refresher);
             LeaderboardView = view.FindViewById<LeaderboardView>(Resource.Id.leaderboard_view);
+            ScrollView = view.FindViewById<ScrollView>(Resource.Id.leaderboard_scroll);
             OnLeaderboardViewLoaded?.Invoke(LeaderboardView);
             OnLeaderboardViewLoaded = delegate { };
 
@@ -86,12 +89,19 @@ namespace R3ELeaderboardViewer
 
             SwipeRefreshLayout = null;
             LeaderboardView = null;
+            ScrollView = null;
         }
 
         public void LoadSnapshot(LeaderboardSnapshot snapshot)
         {
             leaderboardSnapshot = snapshot;
-            OnceLeaderboardViewLoaded((view) => view.LoadFullLeaderboard(snapshot));
+            OnceLeaderboardViewLoaded((view) => {
+                view.LoadFullLeaderboard(snapshot);
+                ScrollView.Post(() =>
+                {
+                    ScrollView.ScrollTo(0, view.Me.Top);
+                });
+            });
         }
     }
 }

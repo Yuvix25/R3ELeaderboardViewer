@@ -1,18 +1,26 @@
 using Android.Content;
+using Android.Graphics;
 using Android.Graphics.Drawables;
+using Android.Support.V4.Content.Res;
 using Android.Text;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
+using Java.Net;
+using Plugin.CloudFirestore;
 using R3ELeaderboardViewer.Firebase;
+using System;
+using System.Linq;
 
 namespace R3ELeaderboardViewer.Views
 {
     public class LeaderboardEntryView : TableRow
     {
         private Drawable? CountryFlag;
-        private Drawable? ProfileImage;
-        private Drawable? LiveryImage;
+        private Drawable? ProfilePicture;
+        private Drawable? LiveryPicture;
+        private URL? ProfilePictureUrl;
+        private URL? LiveryImageUrl;
         private int? Position;
         private int? Uid;
         private string Name;
@@ -20,7 +28,7 @@ namespace R3ELeaderboardViewer.Views
         private GameplayDifficulty Difficulty;
         private string? Team;
         private double? Points;
-        private long? Timestamp;
+        private Timestamp? Timestamp;
 
         public LeaderboardEntryView(Context context) : base(context)
         {
@@ -42,8 +50,8 @@ namespace R3ELeaderboardViewer.Views
                 var attributes = context.ObtainStyledAttributes(attrs, Resource.Styleable.LeaderboardEntryView);
 
                 CountryFlag = attributes.GetDrawable(Resource.Styleable.LeaderboardEntryView_country_flag);
-                ProfileImage = attributes.GetDrawable(Resource.Styleable.LeaderboardEntryView_profile_image);
-                LiveryImage = attributes.GetDrawable(Resource.Styleable.LeaderboardEntryView_livery_image);
+                ProfilePicture = attributes.GetDrawable(Resource.Styleable.LeaderboardEntryView_profile_picture);
+                LiveryPicture = attributes.GetDrawable(Resource.Styleable.LeaderboardEntryView_livery_image);
                 Position = attributes.GetInt(Resource.Styleable.LeaderboardEntryView_position, -1);
                 Uid = attributes.GetInt(Resource.Styleable.LeaderboardEntryView_uid, -1);
                 Name = attributes.GetString(Resource.Styleable.LeaderboardEntryView_name);
@@ -51,7 +59,15 @@ namespace R3ELeaderboardViewer.Views
                 Difficulty = (GameplayDifficulty)attributes.GetInt(Resource.Styleable.LeaderboardEntryView_difficulty, -1);
                 Team = attributes.GetString(Resource.Styleable.LeaderboardEntryView_team);
                 Points = attributes.GetFloat(Resource.Styleable.LeaderboardEntryView_points, -1);
-                Timestamp = attributes.GetInt(Resource.Styleable.LeaderboardEntryView_timestamp, -1);
+                var timestampMilliseconds = attributes.GetInt(Resource.Styleable.LeaderboardEntryView_timestamp, -1);
+                if (timestampMilliseconds == -1)
+                {
+                    Timestamp = null;
+                }
+                else
+                {
+                    Timestamp = new Timestamp(DateTimeOffset.FromUnixTimeMilliseconds(timestampMilliseconds));
+                }
 
                 Nullify();
 
@@ -65,11 +81,13 @@ namespace R3ELeaderboardViewer.Views
         {
             Position = Position == -1 ? null : Position;
             Points = Points == -1 ? null : Points;
-            Timestamp = Timestamp == -1 ? null : Timestamp;
         }
 
-        public void LoadFromLeadeboardEntry(LeaderboardEntry entry)
+        public string[] LoadFromLeadeboardEntry(LeaderboardEntry entry)
         {
+            ProfilePictureUrl = new URL(entry.ProfilePictureUrl);
+            LiveryImageUrl = new URL(entry.LiveryImageUrl);
+            CountryFlag = Utils.CountryFlags.GetCountryFlagDrawable(Context, entry.CountryCode);
             Position = entry.Position;
             Uid = entry.Uid;
             Name = entry.DisplayName;
@@ -77,56 +95,135 @@ namespace R3ELeaderboardViewer.Views
             Difficulty = entry.Difficulty;
             Team = entry.Team;
             Points = (float?)entry.Points;
-            Timestamp = entry.Timestamp.ToDateTimeOffset().ToUnixTimeMilliseconds();
+            Timestamp = entry.Timestamp;
 
             Nullify();
 
-            LoadAttributes();
-        }
-        public void LoadAttributes()
-        {
-            var strings = new string[]
+            return LoadAttributes(new string[]
             {
-                Position.ToString(),
-                Name,
-                Laptime,
-                Team,
-            };
-            for (var i = 0; i < strings.Length; i++)
-            {
-                LoadText(strings[i], i);
-            }
+                "CountryFlag",
+                "Position",
+                "Name",
+                "Laptime",
+                "Team",
+            });
         }
 
-        private ImageView LoadDrawable(Drawable? drawable)
+        private static readonly object NullAttribute = new object();
+        private object GetAttribute(string attr)
         {
-            var view = new ImageView(Context);
-            SetRightMargin(view);
-            if (drawable != null)
+            return attr switch
             {
-                view.SetImageDrawable(drawable);
-                view.Visibility = ViewStates.Visible;
+                "CountryFlag" => CountryFlag ?? (object)CountryFlag,
+                "ProfileImage" => ProfilePicture ?? (object)ProfilePictureUrl,
+                "LiveryImage" => LiveryPicture ?? (object)LiveryImageUrl,
+                "Position" => Position,
+                "Uid" => Uid,
+                "Name" => Name,
+                "Laptime" => Laptime,
+                "Difficulty" => Difficulty,
+                "Team" => Team,
+                "Points" => Points,
+                "Timestamp" => Timestamp,
+                _ => NullAttribute,
+            };
+        }
+
+        public string[] LoadAttributes(string[] attrs = null)
+        {
+            attrs ??= new string[] { "Position", "Name", "Laptime", "Team" };
+            if (attrs.Length < ChildCount)
+            {
+                RemoveViews(attrs.Length, ChildCount - attrs.Length);
+            }
+
+            var values = attrs.Select(GetAttribute).Where(x => x != NullAttribute).ToArray();
+            for (var i = 0; i < values.Length; i++)
+            {
+                var value = values[i];
+                if (value is Drawable drawable)
+                {
+                    LoadImage(drawable, i);
+                }
+                else if (value is URL url)
+                {
+                    LoadImage(Utils.GetBitmapFromUrl(url), i);
+                }
+                else if (value is string text)
+                {
+                    LoadText(text, i);
+                }
+                else if (value is int position)
+                {
+                    LoadText(position.ToString(), i);
+                }
+                else if (value is double points)
+                {
+                    LoadText(points.ToString("0.00"), i);
+                }
+                else if (value is Timestamp timestamp)
+                {
+                    LoadText(timestamp.ToDateTime().ToString(), i);
+                }
+                else if (value is GameplayDifficulty difficulty)
+                {
+                    LoadText(difficulty.ToString(), i);
+                }
+            }
+
+            return attrs;
+        }
+
+        private T GetViewInPosition<T>(int position) where T : View
+        {
+            if (position < ChildCount)
+            {
+                var view = GetChildAt(position);
+                if (view is T tView)
+                {
+                    return tView;
+                }
+                else
+                {
+                    RemoveViews(position, ChildCount - position);
+                }
+            }
+            return null;
+        }
+        private ImageView LoadImage(object? image, int i)
+        {
+            ImageView view = GetViewInPosition<ImageView>(i) ?? new ImageView(Context);
+
+            SetRightMargin(view);
+            if (image != null)
+            {
+                if (image is Bitmap bitmap)
+                {
+                    view.SetImageBitmap(bitmap);
+                }
+                else if (image is Drawable drawable)
+                {
+                    view.SetImageDrawable(drawable);
+                }
+            }
+            view.LayoutParameters.Width = Utils.DpToPixel(15, Context);
+            view.LayoutParameters.Height = Utils.DpToPixel(18, Context);
+
+            if (i >= ChildCount)
+            {
+                AddView(view);
             }
             else
             {
-                view.Visibility = ViewStates.Gone;
+                view.RequestLayout();
             }
-            AddView(view);
 
             return view;
         }
 
         private TextView LoadText(string? text, int index)
         {
-            TextView view;
-            if (index < ChildCount)
-            {
-                view = (TextView)GetChildAt(index);
-            }
-            else
-            {
-                view = new TextView(Context);
-            }
+            TextView view = GetViewInPosition<TextView>(index) ?? new TextView(Context);
 
             view.SetTextAppearance(Resource.Style.LeaderboardEntryTextStyle);
             view.SetMaxLines(1);
@@ -136,11 +233,6 @@ namespace R3ELeaderboardViewer.Views
             if (text != null)
             {
                 view.Text = text;
-                view.Visibility = ViewStates.Visible;
-            }
-            else
-            {
-                view.Visibility = ViewStates.Gone;
             }
 
             if (index >= ChildCount)

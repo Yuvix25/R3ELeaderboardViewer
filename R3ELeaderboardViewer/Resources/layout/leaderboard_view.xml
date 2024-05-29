@@ -26,8 +26,7 @@
         <TableLayout
             android:id="@+id/leaderboard_entries"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:shrinkColumns="3"/>
+            android:layout_height="wrap_content"/>
 
     </LinearLayout>
 

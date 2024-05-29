@@ -5,7 +5,7 @@
 
   <declare-styleable name="LeaderboardEntryView">
     <attr name="country_flag" format="reference" />
-    <attr name="profile_image" format="reference" />
+    <attr name="profile_picture" format="reference" />
     <attr name="livery_image" format="reference" />
     <attr name="position" format="integer" />
     <attr name="uid" format="integer" />

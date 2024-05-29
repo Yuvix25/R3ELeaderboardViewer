@@ -5,11 +5,13 @@ using Android.Widget;
 using R3ELeaderboardViewer.Firebase;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace R3ELeaderboardViewer.Views
 {
     public class LeaderboardView : LinearLayout
     {
+        static readonly string TAG = "R3ELeaderboardViewer:" + typeof(LeaderboardView).Name;
 
         private List<EventHandler> ClickListeners = new List<EventHandler>();
 
@@ -79,7 +81,16 @@ namespace R3ELeaderboardViewer.Views
             {
                 view = new LeaderboardEntryView(Context);
             }
-            view.LoadFromLeadeboardEntry(entry);
+            var attrs = view.LoadFromLeadeboardEntry(entry);
+            for (var i = 0; i < attrs.Length; i++) {
+                switch (attrs[i])
+                {
+                    case "Team":
+                    case "ProfilePicture":
+                        TableView.SetColumnShrinkable(i, true);
+                        break;
+                }
+            }
             view.SetBackgroundColor(Android.Graphics.Color.Transparent);
             view.SetBackgroundResource(0);
 
@@ -135,7 +146,7 @@ namespace R3ELeaderboardViewer.Views
                 }
             }
 
-            me?.SetBackgroundColor(Android.Graphics.Color.Argb(125, 255, 238, 173));
+            MarkMe(me);
         }
 
         public void LoadFullLeaderboard(LeaderboardSnapshot snapshot)
@@ -143,10 +154,27 @@ namespace R3ELeaderboardViewer.Views
             CropEntries(snapshot.Entries.Count);
             NameView.Text = snapshot.Parent.LeaderboardName;
 
+            Log.Debug(TAG, "Started loading full leaderboard");
+
             for (var i = 0; i < snapshot.Entries.Count; i++)
             {
-                AddEntry(snapshot.Entries[i], i);
+                var view = AddEntry(snapshot.Entries[i], i);
+                if (i == snapshot.UserIndex)
+                {
+                    MarkMe(view);
+                }
             }
+        }
+
+        public LeaderboardEntryView? Me { get; private set; } = null;
+        private void MarkMe(LeaderboardEntryView? view)
+        {
+            if (view == null)
+            {
+                return;
+            }
+            Me = view;
+            view.SetBackgroundColor(Android.Graphics.Color.Argb(125, 255, 238, 173));
         }
     }
 }

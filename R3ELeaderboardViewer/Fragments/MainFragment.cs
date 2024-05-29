@@ -89,6 +89,11 @@ namespace R3ELeaderboardViewer.Fragments
 
         public void FirebaseUserUpdated(UserData userData)
         {
+            if (Activity == null)
+            {
+                Log.Warn(TAG, "Activity is null");
+                return;
+            }
             Activity.RunOnUiThread(() =>
             {
                 try

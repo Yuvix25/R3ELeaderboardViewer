@@ -4,12 +4,77 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using Android.Content;
+using Android.Graphics;
+using Android.Util;
+using Java.Net;
+using Android.Graphics.Drawables;
+using Android.Content.Res;
+using Android.Support.V4.Content.Res;
 
 namespace R3ELeaderboardViewer
 {
 #nullable enable
     public static class Utils
     {
+        static readonly string TAG = "R3ELeaderboardViewer:" + typeof(Utils).Name;
+
+
+        public class CountryFlags
+        {
+            private static readonly string[] CountryCodes = new string[]
+            {
+                "ad", "ae", "af", "ag", "ai", "al", "am", "ao", "aq", "ar", "as", "at", "au", "aw", "ax",
+                "az", "ba", "bb", "bd", "be", "bf", "bg", "bh", "bi", "bj", "bl", "bm", "bn", "bo",
+                "bq", "br", "bs", "bt", "bv", "bw", "by", "bz", "ca", "cc", "cd", "cf", "cg", "ch",
+                "ci", "ck", "cl", "cm", "cn", "co", "cr", "cu", "cv", "cw", "cx", "cy", "cz", "de",
+                "dj", "dk", "dm", "do", "dz", "ec", "ee", "eg", "eh", "er", "es", "et", "fi", "fj",
+                "fk", "fm", "fo", "fr", "ga", "gb", "gd", "ge", "gf", "gg", "gh", "gi", "gl", "gm",
+                "gn", "gp", "gq", "gr", "gs", "gt", "gu", "gw", "gy", "hk", "hm", "hn", "hr", "ht",
+                "hu", "id", "ie", "il", "im", "in", "io", "iq", "ir", "is", "it", "je", "jm", "jo",
+                "jp", "ke", "kg", "kh", "ki", "km", "kn", "kp", "kr", "kw", "ky", "kz", "la", "lb",
+                "lc", "li", "lk", "lr", "ls", "lt", "lu", "lv", "ly", "ma", "mc", "md", "me", "mf",
+                "mg", "mh", "mk", "ml", "mm", "mn", "mo", "mp", "mq", "mr", "ms", "mt", "mu", "mv",
+                "mw", "mx", "my", "mz", "na", "nc"
+            };
+            public static Dictionary<string, Drawable> CountryFlagDrawables = new Dictionary<string, Drawable>();
+
+            public static void LoadCountryFlagsAsync(Context context)
+            {
+                foreach (var countryCode in CountryCodes)
+                {
+                    GetCountryFlagDrawable(context, countryCode);
+                }
+            }
+
+            public static Drawable? GetCountryFlagDrawable(Context context, string? countryCode)
+            {
+                if (countryCode == null)
+                {
+                    return null;
+                }
+                if (CountryFlagDrawables.ContainsKey(countryCode))
+                {
+                    return CountryFlagDrawables[countryCode];
+                }
+                var id = context.Resources?.GetIdentifier(countryCode?.ToLower(), "drawable", context.PackageName);
+                if (id == null || id == 0)
+                {
+                    Log.Debug(TAG, $"Could not find drawable for country code {countryCode}");
+                    return null;
+                }
+                var res = ResourcesCompat.GetDrawable(context.Resources, (int)id, null);
+                if (res == null)
+                {
+                    Log.Debug(TAG, $"Could not find drawable for country code {countryCode}");
+                    return null;
+                }
+
+                CountryFlagDrawables[countryCode!] = res;
+                return res;
+            }
+        }
+
+
         public static void SetRequestedWith(WebClient wc)
         {
             wc.Headers.Set("X-Requested-With", "XMLHttpRequest");
@@ -184,6 +249,36 @@ namespace R3ELeaderboardViewer
             }
             dict.TryGetValue(key, out var value);
             return ParseInt(value);
+        }
+
+        public static Bitmap? GetBitmapFromUrl(string? url)
+        {
+            if (url == null)
+            {
+                return null;
+            }
+            Log.Debug(TAG, "Loading bitmap from " + url);
+            Bitmap? imageBitmap = null;
+
+            using (var webClient = new WebClient())
+            {
+                var imageBytes = webClient.DownloadData(url);
+                if (imageBytes != null && imageBytes.Length > 0)
+                {
+                    imageBitmap = BitmapFactory.DecodeByteArray(imageBytes, 0, imageBytes.Length);
+                }
+            }
+
+            return imageBitmap;
+        }
+
+        public static Bitmap? GetBitmapFromUrl(URL? url)
+        {
+            if (url == null)
+            {
+                return null;
+            }
+            return GetBitmapFromUrl(url.ToString());
         }
     }
 }

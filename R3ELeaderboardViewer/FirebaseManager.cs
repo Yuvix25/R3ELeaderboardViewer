@@ -33,7 +33,10 @@ namespace R3ELeaderboardViewer.Firebase
         }
 
         public delegate void OnFirebaseUserDelegate(UserData userData);
-        public static OnFirebaseUserDelegate _OnFirebaseUser = delegate { };
+        public static OnFirebaseUserDelegate _OnFirebaseUser = (UserData userData) =>
+        {
+
+        };
 
         public static Action OnFirebaseUser(OnFirebaseUserDelegate onFirebaseUserDelegate, bool invokeNow = true)
         {
@@ -45,10 +48,22 @@ namespace R3ELeaderboardViewer.Firebase
             return () => _OnFirebaseUser -= onFirebaseUserDelegate;
         }
 
+        public static Task<UserData> WaitForFirebaseUser(bool invokeNow = true)
+        {
+            var tcs = new TaskCompletionSource<UserData>();
+            Action remove = null;
+            remove = OnFirebaseUser((userData) =>
+            {
+                tcs.TrySetResult(userData);
+                remove?.Invoke();
+            }, invokeNow);
+            return tcs.Task;
+        }
+
         public static UserData UserData { get; private set; } = null;
         public static GoogleSignInAccount GoogleSignInAccount { get; private set; } = null;
 
-        public static void Initialize(Context context)
+        public async static Task Initialize(Context context)
         {
             FirebaseApp.InitializeApp(context);
 
@@ -59,9 +74,11 @@ namespace R3ELeaderboardViewer.Firebase
                 .Build();
 
 
-            LoadGoogleSignInAccount(GoogleSignIn.GetLastSignedInAccount(context));
-            Log.Debug(TAG, "Google Current User: " + GoogleSignIn.GetLastSignedInAccount(context)?.DisplayName);
+            var lastSignedInAccount = GoogleSignIn.GetLastSignedInAccount(context);
+
+            Log.Debug(TAG, "Google Current User: " + lastSignedInAccount?.DisplayName);
             Log.Debug(TAG, "Firebase Current User: " + FirebaseAuth.Instance.CurrentUser?.DisplayName);
+            await LoadGoogleSignInAccount(lastSignedInAccount);
         }
         public static void Initialize(AppCompatActivity activity)
         {
@@ -107,7 +124,7 @@ namespace R3ELeaderboardViewer.Firebase
             return GoogleSignInAsync;
         }
 
-        public static void LoadGoogleSignInAccount(GoogleSignInAccount googleSignInAccount)
+        public static async Task LoadGoogleSignInAccount(GoogleSignInAccount googleSignInAccount)
         {
             GoogleSignInAccount = googleSignInAccount;
             if (googleSignInAccount?.IdToken == null)
@@ -116,18 +133,19 @@ namespace R3ELeaderboardViewer.Firebase
             }
             else if (FirebaseAuth.Instance.CurrentUser == null)
             {
-                _ = FirebaseAuth.Instance.SignInWithCredentialAsync(GoogleAuthProvider.GetCredential(googleSignInAccount?.IdToken, null)).ContinueWith((res) =>
+                try
                 {
-                    Log.Debug(TAG, "Firebase Auth Sucessful: " + res.IsCompletedSuccessfully);
-                    if (res.IsCompletedSuccessfully)
-                    {
-                        OnFirebaseUserLoaded(res.Result.AdditionalUserInfo.IsNewUser);
-                    }
-                });
+                    var res = await FirebaseAuth.Instance.SignInWithCredentialAsync(GoogleAuthProvider.GetCredential(googleSignInAccount?.IdToken, null));
+                    await OnFirebaseUserLoaded(res.AdditionalUserInfo.IsNewUser);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(TAG, "Error signing in Firebase user: " + e);
+                }
             }
             else
             {
-                OnFirebaseUserLoaded(false);
+                await OnFirebaseUserLoaded(false);
             }
 
             if (googleSignInAccount != null)
@@ -148,7 +166,7 @@ namespace R3ELeaderboardViewer.Firebase
             OnFirebaseUserRemove();
         }
 
-        private static async void OnFirebaseUserLoaded(bool isNewUser)
+        private static async Task OnFirebaseUserLoaded(bool isNewUser)
         {
             Log.Debug(TAG, "OnFirebaseUserLoaded");
             if (UserData == null)

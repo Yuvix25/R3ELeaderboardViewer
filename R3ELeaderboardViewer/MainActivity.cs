@@ -57,6 +57,7 @@ namespace R3ELeaderboardViewer
             // Not the same as GotoFragment, using `Add` instead of `Replace`
             var transaction = SupportFragmentManager.BeginTransaction();
             transaction.Add(Resource.Id.fragment_container, mainFragment);
+            transaction.AddToBackStack(null);
             transaction.Commit();
 
 
@@ -67,6 +68,7 @@ namespace R3ELeaderboardViewer
         {
             var transaction = SupportFragmentManager.BeginTransaction();
             transaction.Replace(Resource.Id.fragment_container, fragment);
+            transaction.AddToBackStack(null);
             transaction.Commit();
         }
 
@@ -82,6 +84,10 @@ namespace R3ELeaderboardViewer
             if(drawer.IsDrawerOpen(GravityCompat.Start))
             {
                 drawer.CloseDrawer(GravityCompat.Start);
+            }
+            else if (SupportFragmentManager.BackStackEntryCount > 0)
+            {
+                SupportFragmentManager.PopBackStack();
             }
             else
             {
@@ -109,11 +115,7 @@ namespace R3ELeaderboardViewer
             {
                 NavigateToFragment(mainFragment);
             }
-            else if (id == Resource.Id.nav_gallery)
-            {
-
-            }
-            else if (id == Resource.Id.nav_slideshow)
+            else if (id == Resource.Id.nav_browse)
             {
 
             }

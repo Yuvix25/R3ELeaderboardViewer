@@ -23,19 +23,17 @@ namespace R3ELeaderboardViewer
         }
 
 
-        void Startup()
+        async void Startup()
         {
             Log.Debug(TAG, "Starting up...");
-            Action remove = null;
 
-            remove = FirebaseManager.OnFirebaseUser((userData) =>
-            {
-                Log.Debug(TAG, "Startup work is finished - starting MainActivity");
-                StartActivity(new Intent(Application.Context, typeof(MainActivity)));
-                remove();
-            }, false);
+            var firebaseTask = FirebaseManager.Initialize((Context)this);
+            Utils.CountryFlags.LoadCountryFlagsAsync(this); // eager load country flags to prevent slight lag when loading leaderboard
 
-            FirebaseManager.Initialize((Context)this);
+            await Task.WhenAll(firebaseTask);
+
+            Log.Debug(TAG, "Startup work is finished - starting MainActivity");
+            StartActivity(new Intent(Application.Context, typeof(MainActivity)));
         }
     }
 }

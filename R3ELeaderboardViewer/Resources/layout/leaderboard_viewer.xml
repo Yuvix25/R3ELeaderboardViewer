@@ -19,9 +19,10 @@
         android:layout_height="match_parent">
 
         <ScrollView
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+            android:id="@+id/leaderboard_scroll"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
             <R3ELeaderboardViewer.Views.LeaderboardView
                 android:id="@+id/leaderboard_view"

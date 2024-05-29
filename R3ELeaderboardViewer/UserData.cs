@@ -309,11 +309,14 @@ namespace R3ELeaderboardViewer.Firebase
                         Log.Error(TAG, "Error parsing user data " + e);
                     }
                 }
-                items = items.Where(item => item.type.StartsWith("user.competition") && item.date >= SHOW_RECENT_COMPETITIONS_SINCE).ToList();
+                items = items.Where(
+                    item => item.type.StartsWith("user.competition") &&
+                            item.date >= SHOW_RECENT_COMPETITIONS_SINCE &&
+                            item.source.username == RaceRoomUsername
+                ).ToList();
 
                 Log.Debug(TAG, "Found " + RecentCompetitions.Count + " competitions");
                 var expiration = RecentCompetitions.GroupBy(competition => competition.AddedAt.ToDateTime() < SHOW_RECENT_COMPETITIONS_SINCE);
-                Log.Debug(TAG, "Found " + expiration.Count() + " groups of competitions");
                 var newComps = new List<Leaderboard>();
                 foreach (var group in expiration)
                 {
@@ -405,9 +408,10 @@ namespace R3ELeaderboardViewer.Firebase
         }
         private readonly struct NewsFeedItemSource
         {
-            public readonly string image;
+            public readonly string username;
             public readonly string name;
             public readonly string path;
+            public readonly string image;
             public readonly string type;
 
             public NewsFeedItemSource(JObject source)
@@ -421,9 +425,10 @@ namespace R3ELeaderboardViewer.Firebase
                 {
                     throw new JsonReaderException("Invalid NewsFeedItemSource");
                 }
-                image = (string)source["image"];
+                username = source.ContainsKey("username") ? (string)source["username"] : "";
                 name = (string)source["name"];
                 path = (string)source["path"];
+                image = (string)source["image"];
                 type = (string)source["type"];
             }
         }
@@ -535,7 +540,13 @@ namespace R3ELeaderboardViewer.Firebase
         static readonly string TAG = "R3ELeaderboardViewer:" + typeof(Leaderboard).Name;
 
         public static readonly string LEADERBOARD_LISTING_URL = UserData.RACEROOM_URL + "leaderboard/listing/{0}";
-        public static readonly DateTimeOffset SAVE_SNAPSHOT_EVERY = DateTimeOffset.Now.AddDays(-1);
+        public static DateTimeOffset SAVE_SNAPSHOT_EVERY
+        {
+            get
+            {
+                return DateTimeOffset.Now.AddHours(-1);
+            }
+        }
         public static readonly int MAX_SNAPSHOTS = 10;
 
         public readonly int LeaderboardId;
