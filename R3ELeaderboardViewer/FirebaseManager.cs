@@ -1,4 +1,3 @@
-
 using System;
 using Firebase;
 using Firebase.Auth;
@@ -16,10 +15,10 @@ namespace R3ELeaderboardViewer.Firebase
     {
         static readonly string TAG = "R3ELeaderboardViewer:" + typeof(FirebaseManager).Name;
 
-        private static AppCompatActivity activity = null;
+        private static AppCompatActivity Activity = null;
 
-        private static GoogleSignInOptions gso = null;
-        private static GoogleSignInClient googleSignInClient = null;
+        private static GoogleSignInOptions Gso = null;
+        private static GoogleSignInClient GoogleSignInClient = null;
         public static Func<Task<GoogleSignInResult>> GoogleSignInAsync { get; private set; } = null;
 
         public delegate void OnUserDelegate(GoogleSignInAccount googleSignInAccount);
@@ -33,10 +32,7 @@ namespace R3ELeaderboardViewer.Firebase
         }
 
         public delegate void OnFirebaseUserDelegate(UserData userData);
-        public static OnFirebaseUserDelegate _OnFirebaseUser = (UserData userData) =>
-        {
-
-        };
+        public static OnFirebaseUserDelegate _OnFirebaseUser = (UserData userData) => { };
 
         public static Action OnFirebaseUser(OnFirebaseUserDelegate onFirebaseUserDelegate, bool invokeNow = true)
         {
@@ -48,27 +44,15 @@ namespace R3ELeaderboardViewer.Firebase
             return () => _OnFirebaseUser -= onFirebaseUserDelegate;
         }
 
-        public static Task<UserData> WaitForFirebaseUser(bool invokeNow = true)
-        {
-            var tcs = new TaskCompletionSource<UserData>();
-            Action remove = null;
-            remove = OnFirebaseUser((userData) =>
-            {
-                tcs.TrySetResult(userData);
-                remove?.Invoke();
-            }, invokeNow);
-            return tcs.Task;
-        }
-
         public static UserData UserData { get; private set; } = null;
         public static GoogleSignInAccount GoogleSignInAccount { get; private set; } = null;
 
-        public async static Task Initialize(Context context)
+        public async static Task Initialize(Context context, bool onlySignedIn = false)
         {
             FirebaseApp.InitializeApp(context);
 
             // google sign in options
-            gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn)
+            Gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn)
                 .RequestIdToken(context.GetString(Resource.String.default_web_client_id))
                 .RequestEmail()
                 .Build();
@@ -78,16 +62,16 @@ namespace R3ELeaderboardViewer.Firebase
 
             Log.Debug(TAG, "Google Current User: " + lastSignedInAccount?.DisplayName);
             Log.Debug(TAG, "Firebase Current User: " + FirebaseAuth.Instance.CurrentUser?.DisplayName);
-            await LoadGoogleSignInAccount(lastSignedInAccount);
+            await LoadGoogleSignInAccount(lastSignedInAccount, onlySignedIn);
         }
         public static void Initialize(AppCompatActivity activity)
         {
-            FirebaseManager.activity = activity;
+            Activity = activity;
 
             try
             {
                 // google sign in client
-                googleSignInClient = GoogleSignIn.GetClient(activity, gso);
+                GoogleSignInClient = GoogleSignIn.GetClient(activity, Gso);
                 PrepareGoogleSignIn();
             }
             catch (Exception e)
@@ -102,9 +86,9 @@ namespace R3ELeaderboardViewer.Firebase
             {
                 return GoogleSignInAsync;
             }
-            googleSignInClient = GoogleSignIn.GetClient(activity, gso);
+            GoogleSignInClient = GoogleSignIn.GetClient(Activity, Gso);
             TaskCompletionSource<GoogleSignInResult> taskCompletionSource = null;
-            var activityResultLauncher = activity.RegisterForActivityResult(
+            var activityResultLauncher = Activity.RegisterForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 new ActivityResultCallback(
                     activityResult => taskCompletionSource?.SetResult(Auth.GoogleSignInApi.GetSignInResultFromIntent(activityResult.Data))
@@ -113,7 +97,7 @@ namespace R3ELeaderboardViewer.Firebase
 
             GoogleSignInAsync = () => {
                 taskCompletionSource = new TaskCompletionSource<GoogleSignInResult>();
-                activityResultLauncher.Launch(googleSignInClient.SignInIntent);
+                activityResultLauncher.Launch(GoogleSignInClient.SignInIntent);
                 return taskCompletionSource.Task.ContinueWith((res) =>
                 {
                     Log.Debug(TAG, "Google Sign In Sucessful: " + (res.Result.SignInAccount?.IdToken != null));
@@ -124,14 +108,14 @@ namespace R3ELeaderboardViewer.Firebase
             return GoogleSignInAsync;
         }
 
-        public static async Task LoadGoogleSignInAccount(GoogleSignInAccount googleSignInAccount)
+        public static async Task LoadGoogleSignInAccount(GoogleSignInAccount googleSignInAccount, bool onlySignedIn = false)
         {
             GoogleSignInAccount = googleSignInAccount;
             if (googleSignInAccount?.IdToken == null)
             {
                 SignOut();
             }
-            else if (FirebaseAuth.Instance.CurrentUser == null)
+            else if (FirebaseAuth.Instance.CurrentUser == null && !onlySignedIn)
             {
                 try
                 {
@@ -143,7 +127,7 @@ namespace R3ELeaderboardViewer.Firebase
                     Log.Error(TAG, "Error signing in Firebase user: " + e);
                 }
             }
-            else
+            else if (FirebaseAuth.Instance.CurrentUser != null)
             {
                 await OnFirebaseUserLoaded(false);
             }
@@ -157,7 +141,7 @@ namespace R3ELeaderboardViewer.Firebase
         public static void SignOut()
         {
             Log.Debug(TAG, "Signing out...");
-            googleSignInClient?.SignOut();
+            GoogleSignInClient?.SignOut();
             FirebaseAuth.Instance.SignOut();
 
             GoogleSignInAccount = null;
@@ -180,11 +164,11 @@ namespace R3ELeaderboardViewer.Firebase
 
             if (isNewUser)
             {
-                await UserData.Save();
+                await UserData.SaveFields();
             }
             else
             {
-                await UserData.Load();
+                await Entity.root.LoadChildEntity(UserData);
             }
 
             _OnFirebaseUser.Invoke(UserData);

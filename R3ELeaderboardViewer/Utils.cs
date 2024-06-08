@@ -1,15 +1,15 @@
 using R3ELeaderboardViewer.Firebase;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using Android.Content;
-using Android.Graphics;
 using Android.Util;
-using Java.Net;
 using Android.Graphics.Drawables;
-using Android.Content.Res;
 using Android.Support.V4.Content.Res;
+using System.Reflection;
+using System.Collections;
 
 namespace R3ELeaderboardViewer
 {
@@ -38,7 +38,7 @@ namespace R3ELeaderboardViewer
             };
             public static Dictionary<string, Drawable> CountryFlagDrawables = new Dictionary<string, Drawable>();
 
-            public static void LoadCountryFlagsAsync(Context context)
+            public static void LoadCountryFlags(Context context)
             {
                 foreach (var countryCode in CountryCodes)
                 {
@@ -108,7 +108,7 @@ namespace R3ELeaderboardViewer
             var intList = new List<int?>();
             foreach (var item in list)
             {
-                intList.Add(ParseInt(item) ?? null);
+                intList.Add(ParseInt(item));
             }
             return intList;
         }
@@ -231,54 +231,173 @@ namespace R3ELeaderboardViewer
 
 #nullable enable
 
-        public static int GetIntOrDefault<K, V>(IDictionary<K, V>? dict, K key, int @default)
+        public static T GetAttribute<T>(MemberInfo memberInfo) where T : Attribute
         {
-            if (dict == null)
-            {
-                return @default;
-            }
-            dict.TryGetValue(key, out var value);
-            return ParseInt(value) ?? @default;
+            return (T)memberInfo.GetCustomAttribute(typeof(T));
         }
 
-        public static int? GetIntOrDefault<K, V>(IDictionary<K, V>? dict, K key)
+        public static List<Tuple<PropertyOrFieldInfo, T>> GetAllPropertiesWith<T>(Type type) where T : Attribute
         {
-            if (dict == null)
+            var properties = new List<Tuple<PropertyOrFieldInfo, T>>();
+            foreach (var property in type.GetProperties())
             {
-                return null;
-            }
-            dict.TryGetValue(key, out var value);
-            return ParseInt(value);
-        }
-
-        public static Bitmap? GetBitmapFromUrl(string? url)
-        {
-            if (url == null)
-            {
-                return null;
-            }
-            Log.Debug(TAG, "Loading bitmap from " + url);
-            Bitmap? imageBitmap = null;
-
-            using (var webClient = new WebClient())
-            {
-                var imageBytes = webClient.DownloadData(url);
-                if (imageBytes != null && imageBytes.Length > 0)
+                var attr = GetAttribute<T>(property);
+                if (attr != null)
                 {
-                    imageBitmap = BitmapFactory.DecodeByteArray(imageBytes, 0, imageBytes.Length);
+                    properties.Add(new Tuple<PropertyOrFieldInfo, T>(new PropertyOrFieldInfo(property), attr));
                 }
             }
-
-            return imageBitmap;
+            foreach (var field in type.GetFields())
+            {
+                var attr = GetAttribute<T>(field);
+                if (attr != null)
+                {
+                    properties.Add(new Tuple<PropertyOrFieldInfo, T>(new PropertyOrFieldInfo(field), attr));
+                }
+            }
+            return properties;
         }
 
-        public static Bitmap? GetBitmapFromUrl(URL? url)
+        public static IList ListOfType(Type type)
         {
-            if (url == null)
+            var constructedListType = typeof(List<>).MakeGenericType(type);
+            return (IList)Activator.CreateInstance(constructedListType);
+        }
+
+        public static IDictionary DictionaryOfType(Type keyType, Type valueType)
+        {
+            var constructedDictType = typeof(Dictionary<,>).MakeGenericType(keyType, valueType);
+            return (IDictionary)Activator.CreateInstance(constructedDictType);
+        }
+
+
+        public enum TypeKind
+        {
+            Unknown,
+            Entity,
+            List,
+            Dictionary
+        }
+
+        public static Tuple<Type?, TypeKind> TypeInfo(Type baseType, Type type)
+        {
+            Type? entityType;
+            TypeKind kind;
+            // check if field is dictionary or collection of entities
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
             {
-                return null;
+                kind = TypeKind.Dictionary;
+                entityType = type.GetGenericArguments()[1];
             }
-            return GetBitmapFromUrl(url.ToString());
+            else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+            {
+                kind = TypeKind.List;
+                entityType = type.GetGenericArguments()[0];
+            }
+            else if (type.IsSubclassOf(baseType))
+            {
+                kind = TypeKind.Entity;
+                entityType = type;
+            }
+            else
+            {
+                return new Tuple<Type?, TypeKind>(null, TypeKind.Unknown);
+            }
+
+            if (!entityType.IsSubclassOf(baseType))
+            {
+                return new Tuple<Type?, TypeKind>(null, TypeKind.Unknown);
+            }
+
+            return new Tuple<Type?, TypeKind>(entityType, kind);
+        }
+
+
+        /*
+         * Casts a List<F> to a List<T> where F is a subclass of T
+         */
+        public static List<T> ListCast<F, T>(object obj) where F : T
+        {
+            var list = (List<F>)obj;
+            var res = new List<T>();
+            foreach (var item in list)
+            {
+                res.Add(item);
+            }
+            return res;
+        }
+
+        /*
+         * Casts a Dictionary<string, F> to a Dictionary<string, T> where F is a subclass of T
+         */
+        public static Dictionary<string, T> DictionaryCast<F, T>(object obj) where F : T
+        {
+            var dict = (Dictionary<string, F>)obj;
+            var res = new Dictionary<string, T>();
+            foreach (var key in dict.Keys)
+            {
+                res[key] = dict[key];
+            }
+            return res;
+        }
+
+        /*
+         * Casts a List<type> to a List<T>
+         */
+        public static List<T> CastToList<T>(Type type, object obj)
+        {
+            var method = typeof(Utils).GetMethod("ListCast", new Type[] { typeof(object) });
+            var genericMethod = method.MakeGenericMethod(type, typeof(T));
+            object res;
+            try
+            {
+                res = genericMethod.Invoke(null, new object[] { obj })!;
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Failed to cast list", e);
+            }
+            return (List<T>)res;
+        }
+
+        /*
+         * Casts a Dictionary<string, type> to a Dictionary<string, T>
+         */
+        public static Dictionary<string, T> CastToDictionary<T>(Type type, object obj)
+        {
+            var method = typeof(Utils).GetMethod("DictionaryCast", new Type[] { typeof(object) });
+            var genericMethod = method.MakeGenericMethod(type, typeof(T));
+            object res;
+            try
+            {
+                res = genericMethod.Invoke(null, new object[] { obj })!;
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Failed to cast dictionary", e);
+            }
+            return (Dictionary<string, T>)res;
+        }
+
+        public static string? GetOrdinalSuffix(int num)
+        {
+            string number = num.ToString();
+            if (number.EndsWith("11")) return "th";
+            if (number.EndsWith("12")) return "th";
+            if (number.EndsWith("13")) return "th";
+            if (number.EndsWith("1")) return "st";
+            if (number.EndsWith("2")) return "nd";
+            if (number.EndsWith("3")) return "rd";
+            return "th";
+        }
+
+        public static string GetWithOrdinalSuffix(int? num)
+        {
+            if (!num.HasValue)
+            {
+                return "(unknown)";
+            }
+            return num + GetOrdinalSuffix(num.Value);
         }
     }
 }

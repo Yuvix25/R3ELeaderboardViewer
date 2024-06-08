@@ -12,8 +12,11 @@ using R3ELeaderboardViewer.Fragments;
 using System.Threading.Tasks;
 using AndroidX.Activity.Result;
 using R3ELeaderboardViewer.Firebase;
+using Android.Content;
+using R3ELeaderboardViewer.PeriodicJob;
+using Xamarin.Essentials;
+using Android;
 using Android.Util;
-using AndroidX.Lifecycle;
 
 namespace R3ELeaderboardViewer
 {
@@ -36,8 +39,12 @@ namespace R3ELeaderboardViewer
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
-            Xamarin.Essentials.Platform.Init(this, savedInstanceState);
+            Platform.Init(this, savedInstanceState);
             SetContentView(Resource.Layout.activity_main);
+
+            RequestPermissions();
+            
+            SchedulePeriodicJob();
 
             var toolbar = FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
             SetSupportActionBar(toolbar);
@@ -62,6 +69,34 @@ namespace R3ELeaderboardViewer
 
 
             FirebaseManager.Initialize(this);
+        }
+
+        public static readonly string[] Permissions =
+        {
+            Manifest.Permission.PostNotifications,
+            Manifest.Permission.WakeLock,
+            Manifest.Permission.ReceiveBootCompleted,
+        };
+
+        private void RequestPermissions()
+        {
+            foreach (var permission in Permissions)
+            {
+                if (CheckSelfPermission(permission) != Android.Content.PM.Permission.Granted)
+                {
+                    Log.Debug(TAG, "Requesting permission: " + permission);
+                    RequestPermissions(Permissions, 0);
+                }
+            }
+        }
+
+        private void SchedulePeriodicJob()
+        {
+            AlarmManager alarmManager = (AlarmManager)GetSystemService(AlarmService);
+            Intent intent = new Intent(this, typeof(Receiver));
+            PendingIntent pendingIntent = PendingIntent.GetBroadcast(this, 0, intent, PendingIntentFlags.Immutable);
+
+            alarmManager.SetInexactRepeating(AlarmType.RtcWakeup, 0, 1000 * 60 * 60, pendingIntent); // every hour
         }
 
         public void GotoFragment(Fragment fragment)
@@ -139,7 +174,7 @@ namespace R3ELeaderboardViewer
         }
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
         {
-            Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+            Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }

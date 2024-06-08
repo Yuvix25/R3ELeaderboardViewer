@@ -19,6 +19,8 @@ namespace R3ELeaderboardViewer
             base.OnCreate(savedInstanceState);
             Log.Debug(TAG, "SplashActivity.OnCreate");
 
+            Notifications.Initialize(this);
+
             Startup();
         }
 
@@ -28,7 +30,7 @@ namespace R3ELeaderboardViewer
             Log.Debug(TAG, "Starting up...");
 
             var firebaseTask = FirebaseManager.Initialize((Context)this);
-            Utils.CountryFlags.LoadCountryFlagsAsync(this); // eager load country flags to prevent slight lag when loading leaderboard
+            Utils.CountryFlags.LoadCountryFlags(this); // eager load country flags to prevent slight lag when loading leaderboard
 
             await Task.WhenAll(firebaseTask);
 

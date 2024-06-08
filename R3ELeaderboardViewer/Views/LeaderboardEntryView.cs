@@ -11,6 +11,7 @@ using Plugin.CloudFirestore;
 using R3ELeaderboardViewer.Firebase;
 using System;
 using System.Linq;
+using Square.Picasso;
 
 namespace R3ELeaderboardViewer.Views
 {
@@ -21,7 +22,7 @@ namespace R3ELeaderboardViewer.Views
         private Drawable? LiveryPicture;
         private URL? ProfilePictureUrl;
         private URL? LiveryImageUrl;
-        private int? Position;
+        public int? Position { get; private set; }
         private int? Uid;
         private string Name;
         private string Laptime;
@@ -147,7 +148,7 @@ namespace R3ELeaderboardViewer.Views
                 }
                 else if (value is URL url)
                 {
-                    LoadImage(Utils.GetBitmapFromUrl(url), i);
+                    LoadImage(url, i);
                 }
                 else if (value is string text)
                 {
@@ -190,22 +191,31 @@ namespace R3ELeaderboardViewer.Views
             }
             return null;
         }
-        private ImageView LoadImage(object? image, int i)
+        private ImageView LoadImage(Drawable image, int i)
+        {
+            return LoadImage((view) =>
+            {
+                if (image != null)
+                {
+                    view.SetImageDrawable(image);
+                }
+            }, i);
+        }
+
+        private ImageView LoadImage(URL url, int i)
+        {
+            return LoadImage((view) =>
+            {
+                Picasso.Get().Load(url.ToString()).Into(view);
+            }, i);
+        }
+
+        private ImageView LoadImage(Action<ImageView> applyImage, int i)
         {
             ImageView view = GetViewInPosition<ImageView>(i) ?? new ImageView(Context);
 
             SetRightMargin(view);
-            if (image != null)
-            {
-                if (image is Bitmap bitmap)
-                {
-                    view.SetImageBitmap(bitmap);
-                }
-                else if (image is Drawable drawable)
-                {
-                    view.SetImageDrawable(drawable);
-                }
-            }
+            applyImage.Invoke(view);
             view.LayoutParameters.Width = Utils.DpToPixel(15, Context);
             view.LayoutParameters.Height = Utils.DpToPixel(18, Context);
 

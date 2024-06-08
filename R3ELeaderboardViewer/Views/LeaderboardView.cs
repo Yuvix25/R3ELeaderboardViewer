@@ -3,9 +3,10 @@ using Android.Util;
 using Android.Views;
 using Android.Widget;
 using R3ELeaderboardViewer.Firebase;
+using R3ELeaderboardViewer.RaceRoom;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+
 
 namespace R3ELeaderboardViewer.Views
 {
@@ -120,13 +121,13 @@ namespace R3ELeaderboardViewer.Views
             NameView.Text = snapshot.Parent.LeaderboardName;
 
             var showPosition = snapshot.UserIndex ?? 0;
-            var start = Math.Max(1, showPosition - Leaderboard.MINIMUM_SPACE_AHEAD + 1);
-            var end = Math.Min(snapshot.Entries.Count, showPosition + Leaderboard.MINIMUM_SPACE_BEHIND + 1);
+            var start = Math.Max(1, showPosition - RaceRoomApiManager.MINIMUM_SPACE_AHEAD + 1);
+            var end = Math.Min(snapshot.Entries.Count, showPosition + RaceRoomApiManager.MINIMUM_SPACE_BEHIND + 1);
 
             TableView.RemoveAllViews();
             CropEntries(end - start);
 
-            LeaderboardEntryView? me = null;
+            LeaderboardEntryView me = null;
             if (snapshot.Entries.Count > 0)
             {
                 var view = AddEntry(snapshot.Entries[0], 0);
@@ -166,15 +167,21 @@ namespace R3ELeaderboardViewer.Views
             }
         }
 
-        public LeaderboardEntryView? Me { get; private set; } = null;
-        private void MarkMe(LeaderboardEntryView? view)
+        public LeaderboardEntryView Me { get; private set; } = null;
+        private void MarkMe(LeaderboardEntryView view)
         {
             if (view == null)
             {
                 return;
             }
             Me = view;
-            view.SetBackgroundColor(Android.Graphics.Color.Argb(125, 255, 238, 173));
+            if (view.Position == 1)
+            {
+                view.SetBackgroundResource(Resource.Drawable.bottom_border_highlighted);
+            } else
+            {
+                view.SetBackgroundColor(Android.Graphics.Color.Rgb(255, 238, 173));
+            }
         }
     }
 }

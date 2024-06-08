@@ -75,7 +75,7 @@ namespace R3ELeaderboardViewer
                     {
                         uid = leaderboardSnapshot.Entries[leaderboardSnapshot.UserIndex.Value].Uid;
                     }
-                    LoadSnapshot(await leaderboardSnapshot.Parent.FetchSnapshot(uid));
+                    LoadSnapshot(await leaderboardSnapshot.Parent.FetchSnapshot(uid, true));
                 }
                 SwipeRefreshLayout.Refreshing = false;
             });

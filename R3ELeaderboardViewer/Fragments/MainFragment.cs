@@ -56,7 +56,7 @@ namespace R3ELeaderboardViewer.Fragments
                 {
                     return;
                 }
-                if (RaceRoomUsernameInput.Text != FirebaseManager.UserData.RaceRoomUsername)
+                if (RaceRoomUsernameInput.Text != FirebaseManager.UserData.RaceRoomUserName)
                 {
                     SetRaceRoomUsernameValid(null);
                 }
@@ -98,17 +98,10 @@ namespace R3ELeaderboardViewer.Fragments
             {
                 try
                 {
-                    RaceRoomUsernameInput.Text = userData?.RaceRoomUsername ?? "";
+                    RaceRoomUsernameInput.Text = userData?.RaceRoomUserName ?? "";
                     SetRaceRoomUsernameValid();
 
-                    var elvStructure = new Dictionary<string, List<LeaderboardSnapshot>>();
-                    var recentCompetitionSnapshots = GetLatestSnapshots(userData?.RecentCompetitions);
-                    var savedLeaderboardSnapshots = GetLatestSnapshots(userData?.SavedLeaderboards);
-                    elvStructure.Add("Recent Competitions", recentCompetitionSnapshots);
-                    elvStructure.Add("Saved Leaderboards", savedLeaderboardSnapshots);
-                    var leaderboardAdapter = new LeaderboardExpandableListViewAdapter(Context, elvStructure.Keys.ToList(), elvStructure);
-                    leaderboardAdapter.OnLeaderboardClick += OnLeaderboardClick;
-                    LeaderboardElv.SetAdapter(leaderboardAdapter);
+                    CompetitionsUpdated(userData);
                 }
                 catch (Exception e)
                 {
@@ -117,8 +110,19 @@ namespace R3ELeaderboardViewer.Fragments
             });
         }
 
+        public void CompetitionsUpdated(UserData userData)
+        {
+            var elvStructure = new Dictionary<string, List<LeaderboardSnapshot>>();
+            var recentCompetitionSnapshots = GetLatestSnapshots(userData?.RecentCompetitions?.Values?.ToList());
+            elvStructure.Add("Recent Competitions", recentCompetitionSnapshots);
+            var leaderboardAdapter = new LeaderboardExpandableListViewAdapter(Context, elvStructure.Keys.ToList(), elvStructure);
+            leaderboardAdapter.OnLeaderboardClick += OnLeaderboardClick;
+            LeaderboardElv.SetAdapter(leaderboardAdapter);
+        }
+
         private static List<LeaderboardSnapshot> GetLatestSnapshots(List<Leaderboard> competitions)
         {
+            competitions = competitions ?? new List<Leaderboard>();
             var snapshots = new List<LeaderboardSnapshot>();
             foreach (var competition in competitions)
             {
@@ -157,13 +161,13 @@ namespace R3ELeaderboardViewer.Fragments
             var username = RaceRoomUsernameInput.Text;
             username = username.Length == 0 ? null : username;
             
-            var valid = await FirebaseManager.UserData.SaveRaceRoomUsername(username);
+            var valid = await FirebaseManager.UserData.SaveRaceRoomUserName(username);
             SetRaceRoomUsernameValid(valid);
             if (!valid)
             {
                 RaceRoomUsernameInput.ClearFocus();
                 await Task.Delay(700);
-                RaceRoomUsernameInput.Text = FirebaseManager.UserData?.RaceRoomUsername ?? "";
+                RaceRoomUsernameInput.Text = FirebaseManager.UserData?.RaceRoomUserName ?? "";
                 SetRaceRoomUsernameValid();
             }
         }
