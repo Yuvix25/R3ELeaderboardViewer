@@ -25,6 +25,13 @@ namespace R3ELeaderboardViewer
 		
 		public static void UpdateIdValues()
 		{
+			global::Plugin.CloudFirestore.Resource.Animation.fragment_fast_out_extra_slow_in = global::R3ELeaderboardViewer.Resource.Animation.fragment_fast_out_extra_slow_in;
+			global::Plugin.CloudFirestore.Resource.Animator.fragment_close_enter = global::R3ELeaderboardViewer.Resource.Animator.fragment_close_enter;
+			global::Plugin.CloudFirestore.Resource.Animator.fragment_close_exit = global::R3ELeaderboardViewer.Resource.Animator.fragment_close_exit;
+			global::Plugin.CloudFirestore.Resource.Animator.fragment_fade_enter = global::R3ELeaderboardViewer.Resource.Animator.fragment_fade_enter;
+			global::Plugin.CloudFirestore.Resource.Animator.fragment_fade_exit = global::R3ELeaderboardViewer.Resource.Animator.fragment_fade_exit;
+			global::Plugin.CloudFirestore.Resource.Animator.fragment_open_enter = global::R3ELeaderboardViewer.Resource.Animator.fragment_open_enter;
+			global::Plugin.CloudFirestore.Resource.Animator.fragment_open_exit = global::R3ELeaderboardViewer.Resource.Animator.fragment_open_exit;
 			global::Plugin.CloudFirestore.Resource.Attribute.alpha = global::R3ELeaderboardViewer.Resource.Attribute.alpha;
 			global::Plugin.CloudFirestore.Resource.Attribute.buttonSize = global::R3ELeaderboardViewer.Resource.Attribute.buttonSize;
 			global::Plugin.CloudFirestore.Resource.Attribute.circleCrop = global::R3ELeaderboardViewer.Resource.Attribute.circleCrop;
@@ -43,6 +50,8 @@ namespace R3ELeaderboardViewer
 			global::Plugin.CloudFirestore.Resource.Attribute.imageAspectRatioAdjust = global::R3ELeaderboardViewer.Resource.Attribute.imageAspectRatioAdjust;
 			global::Plugin.CloudFirestore.Resource.Attribute.scopeUris = global::R3ELeaderboardViewer.Resource.Attribute.scopeUris;
 			global::Plugin.CloudFirestore.Resource.Attribute.ttcIndex = global::R3ELeaderboardViewer.Resource.Attribute.ttcIndex;
+			global::Plugin.CloudFirestore.Resource.Color.androidx_core_ripple_material_light = global::R3ELeaderboardViewer.Resource.Color.androidx_core_ripple_material_light;
+			global::Plugin.CloudFirestore.Resource.Color.androidx_core_secondary_text_default_material_light = global::R3ELeaderboardViewer.Resource.Color.androidx_core_secondary_text_default_material_light;
 			global::Plugin.CloudFirestore.Resource.Color.common_google_signin_btn_text_dark = global::R3ELeaderboardViewer.Resource.Color.common_google_signin_btn_text_dark;
 			global::Plugin.CloudFirestore.Resource.Color.common_google_signin_btn_text_dark_default = global::R3ELeaderboardViewer.Resource.Color.common_google_signin_btn_text_dark_default;
 			global::Plugin.CloudFirestore.Resource.Color.common_google_signin_btn_text_dark_disabled = global::R3ELeaderboardViewer.Resource.Color.common_google_signin_btn_text_dark_disabled;
@@ -56,8 +65,6 @@ namespace R3ELeaderboardViewer
 			global::Plugin.CloudFirestore.Resource.Color.common_google_signin_btn_tint = global::R3ELeaderboardViewer.Resource.Color.common_google_signin_btn_tint;
 			global::Plugin.CloudFirestore.Resource.Color.notification_action_color_filter = global::R3ELeaderboardViewer.Resource.Color.notification_action_color_filter;
 			global::Plugin.CloudFirestore.Resource.Color.notification_icon_bg_color = global::R3ELeaderboardViewer.Resource.Color.notification_icon_bg_color;
-			global::Plugin.CloudFirestore.Resource.Color.ripple_material_light = global::R3ELeaderboardViewer.Resource.Color.ripple_material_light;
-			global::Plugin.CloudFirestore.Resource.Color.secondary_text_default_material_light = global::R3ELeaderboardViewer.Resource.Color.secondary_text_default_material_light;
 			global::Plugin.CloudFirestore.Resource.Dimension.compat_button_inset_horizontal_material = global::R3ELeaderboardViewer.Resource.Dimension.compat_button_inset_horizontal_material;
 			global::Plugin.CloudFirestore.Resource.Dimension.compat_button_inset_vertical_material = global::R3ELeaderboardViewer.Resource.Dimension.compat_button_inset_vertical_material;
 			global::Plugin.CloudFirestore.Resource.Dimension.compat_button_padding_horizontal_material = global::R3ELeaderboardViewer.Resource.Dimension.compat_button_padding_horizontal_material;
@@ -160,6 +167,7 @@ namespace R3ELeaderboardViewer
 			global::Plugin.CloudFirestore.Resource.Id.dark = global::R3ELeaderboardViewer.Resource.Id.dark;
 			global::Plugin.CloudFirestore.Resource.Id.dialog_button = global::R3ELeaderboardViewer.Resource.Id.dialog_button;
 			global::Plugin.CloudFirestore.Resource.Id.forever = global::R3ELeaderboardViewer.Resource.Id.forever;
+			global::Plugin.CloudFirestore.Resource.Id.fragment_container_view_tag = global::R3ELeaderboardViewer.Resource.Id.fragment_container_view_tag;
 			global::Plugin.CloudFirestore.Resource.Id.icon = global::R3ELeaderboardViewer.Resource.Id.icon;
 			global::Plugin.CloudFirestore.Resource.Id.icon_group = global::R3ELeaderboardViewer.Resource.Id.icon_group;
 			global::Plugin.CloudFirestore.Resource.Id.icon_only = global::R3ELeaderboardViewer.Resource.Id.icon_only;
@@ -175,6 +183,7 @@ namespace R3ELeaderboardViewer
 			global::Plugin.CloudFirestore.Resource.Id.notification_main_column_container = global::R3ELeaderboardViewer.Resource.Id.notification_main_column_container;
 			global::Plugin.CloudFirestore.Resource.Id.right_icon = global::R3ELeaderboardViewer.Resource.Id.right_icon;
 			global::Plugin.CloudFirestore.Resource.Id.right_side = global::R3ELeaderboardViewer.Resource.Id.right_side;
+			global::Plugin.CloudFirestore.Resource.Id.special_effects_controller_view_tag = global::R3ELeaderboardViewer.Resource.Id.special_effects_controller_view_tag;
 			global::Plugin.CloudFirestore.Resource.Id.standard = global::R3ELeaderboardViewer.Resource.Id.standard;
 			global::Plugin.CloudFirestore.Resource.Id.tag_accessibility_actions = global::R3ELeaderboardViewer.Resource.Id.tag_accessibility_actions;
 			global::Plugin.CloudFirestore.Resource.Id.tag_accessibility_clickable_spans = global::R3ELeaderboardViewer.Resource.Id.tag_accessibility_clickable_spans;
@@ -188,6 +197,10 @@ namespace R3ELeaderboardViewer
 			global::Plugin.CloudFirestore.Resource.Id.text2 = global::R3ELeaderboardViewer.Resource.Id.text2;
 			global::Plugin.CloudFirestore.Resource.Id.time = global::R3ELeaderboardViewer.Resource.Id.time;
 			global::Plugin.CloudFirestore.Resource.Id.title = global::R3ELeaderboardViewer.Resource.Id.title;
+			global::Plugin.CloudFirestore.Resource.Id.view_tree_lifecycle_owner = global::R3ELeaderboardViewer.Resource.Id.view_tree_lifecycle_owner;
+			global::Plugin.CloudFirestore.Resource.Id.view_tree_saved_state_registry_owner = global::R3ELeaderboardViewer.Resource.Id.view_tree_saved_state_registry_owner;
+			global::Plugin.CloudFirestore.Resource.Id.view_tree_view_model_store_owner = global::R3ELeaderboardViewer.Resource.Id.view_tree_view_model_store_owner;
+			global::Plugin.CloudFirestore.Resource.Id.visible_removing_fragment_view_tag = global::R3ELeaderboardViewer.Resource.Id.visible_removing_fragment_view_tag;
 			global::Plugin.CloudFirestore.Resource.Id.wide = global::R3ELeaderboardViewer.Resource.Id.wide;
 			global::Plugin.CloudFirestore.Resource.Integer.google_play_services_version = global::R3ELeaderboardViewer.Resource.Integer.google_play_services_version;
 			global::Plugin.CloudFirestore.Resource.Integer.status_bar_notification_info_maxnum = global::R3ELeaderboardViewer.Resource.Integer.status_bar_notification_info_maxnum;
@@ -246,6 +259,13 @@ namespace R3ELeaderboardViewer
 			global::Plugin.CloudFirestore.Resource.Styleable.FontFamily_fontProviderFetchTimeout = global::R3ELeaderboardViewer.Resource.Styleable.FontFamily_fontProviderFetchTimeout;
 			global::Plugin.CloudFirestore.Resource.Styleable.FontFamily_fontProviderPackage = global::R3ELeaderboardViewer.Resource.Styleable.FontFamily_fontProviderPackage;
 			global::Plugin.CloudFirestore.Resource.Styleable.FontFamily_fontProviderQuery = global::R3ELeaderboardViewer.Resource.Styleable.FontFamily_fontProviderQuery;
+			global::Plugin.CloudFirestore.Resource.Styleable.Fragment = global::R3ELeaderboardViewer.Resource.Styleable.Fragment;
+			global::Plugin.CloudFirestore.Resource.Styleable.FragmentContainerView = global::R3ELeaderboardViewer.Resource.Styleable.FragmentContainerView;
+			global::Plugin.CloudFirestore.Resource.Styleable.FragmentContainerView_android_name = global::R3ELeaderboardViewer.Resource.Styleable.FragmentContainerView_android_name;
+			global::Plugin.CloudFirestore.Resource.Styleable.FragmentContainerView_android_tag = global::R3ELeaderboardViewer.Resource.Styleable.FragmentContainerView_android_tag;
+			global::Plugin.CloudFirestore.Resource.Styleable.Fragment_android_id = global::R3ELeaderboardViewer.Resource.Styleable.Fragment_android_id;
+			global::Plugin.CloudFirestore.Resource.Styleable.Fragment_android_name = global::R3ELeaderboardViewer.Resource.Styleable.Fragment_android_name;
+			global::Plugin.CloudFirestore.Resource.Styleable.Fragment_android_tag = global::R3ELeaderboardViewer.Resource.Styleable.Fragment_android_tag;
 			global::Plugin.CloudFirestore.Resource.Styleable.GradientColor = global::R3ELeaderboardViewer.Resource.Styleable.GradientColor;
 			global::Plugin.CloudFirestore.Resource.Styleable.GradientColorItem = global::R3ELeaderboardViewer.Resource.Styleable.GradientColorItem;
 			global::Plugin.CloudFirestore.Resource.Styleable.GradientColorItem_android_color = global::R3ELeaderboardViewer.Resource.Styleable.GradientColorItem_android_color;
