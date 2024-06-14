@@ -150,14 +150,6 @@ namespace R3ELeaderboardViewer
             {
                 NavigateToFragment(mainFragment);
             }
-            else if (id == Resource.Id.nav_browse)
-            {
-
-            }
-            else if (id == Resource.Id.nav_settings)
-            {
-
-            }
             else if (id == Resource.Id.nav_signin)
             {
                 // move to sign_in.xml:

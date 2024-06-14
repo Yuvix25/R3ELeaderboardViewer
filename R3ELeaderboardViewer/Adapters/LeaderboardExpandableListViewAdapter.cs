@@ -6,6 +6,7 @@ using R3ELeaderboardViewer.Firebase;
 using R3ELeaderboardViewer.Fragments;
 using R3ELeaderboardViewer.Views;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace R3ELeaderboardViewer.Adapters
 {
@@ -22,11 +23,18 @@ namespace R3ELeaderboardViewer.Adapters
         public delegate void LeaderboardClickDelegate(LeaderboardSnapshot snapshot);
         public event LeaderboardClickDelegate OnLeaderboardClick = delegate { };
 
-        public LeaderboardExpandableListViewAdapter(Context context, List<string> leaderboardGroups, Dictionary<string, List<LeaderboardSnapshot>> structure)
+        public LeaderboardExpandableListViewAdapter(Context context, Dictionary<string, List<LeaderboardSnapshot>> structure)
         {
             this.context = context;
-            this.leaderboardGroups = leaderboardGroups;
+            
+            UpdateData(structure);
 
+            inflater = LayoutInflater.From(context);
+        }
+
+        public void UpdateData(Dictionary<string, List<LeaderboardSnapshot>> structure)
+        {
+            leaderboardGroups = structure.Keys.ToList();
             leaderboardSnapshots = new Dictionary<string, LeaderboardSnapshot>();
             this.structure = new Dictionary<string, List<string>>();
             foreach (var header in leaderboardGroups)
@@ -39,8 +47,6 @@ namespace R3ELeaderboardViewer.Adapters
                 }
                 this.structure.Add(header, snapshotIds);
             }
-
-            inflater = LayoutInflater.From(context);
         }
 
         public override int GroupCount

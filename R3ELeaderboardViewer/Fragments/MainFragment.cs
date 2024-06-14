@@ -22,6 +22,7 @@ namespace R3ELeaderboardViewer.Fragments
         private Button RaceRoomUsernameSaveButton;
         private ImageView RaceRoomUsernameValidImage;
         private ExpandableListView LeaderboardElv;
+        private LeaderboardExpandableListViewAdapter LeaderboardElvAdapter;
         private TextView HelloMessage;
         private int ValidImage = Resource.Drawable.ic_check;
         private int InvalidImage = Resource.Drawable.ic_close;
@@ -112,12 +113,25 @@ namespace R3ELeaderboardViewer.Fragments
 
         public void CompetitionsUpdated(UserData userData)
         {
+            Log.Info(TAG, "Updating competitions");
             var elvStructure = new Dictionary<string, List<LeaderboardSnapshot>>();
             var recentCompetitionSnapshots = GetLatestSnapshots(userData?.RecentCompetitions?.Values?.ToList());
             elvStructure.Add("Recent Competitions", recentCompetitionSnapshots);
-            var leaderboardAdapter = new LeaderboardExpandableListViewAdapter(Context, elvStructure.Keys.ToList(), elvStructure);
-            leaderboardAdapter.OnLeaderboardClick += OnLeaderboardClick;
-            LeaderboardElv.SetAdapter(leaderboardAdapter);
+            Activity.RunOnUiThread(() =>
+            {
+                if (LeaderboardElvAdapter == null || LeaderboardElv.Adapter == null)
+                {
+                    LeaderboardElvAdapter = new LeaderboardExpandableListViewAdapter(Context, elvStructure);
+                    LeaderboardElvAdapter.OnLeaderboardClick += OnLeaderboardClick;
+                    LeaderboardElv.SetAdapter(LeaderboardElvAdapter);
+                }
+                else
+                {
+                    LeaderboardElvAdapter.UpdateData(elvStructure);
+                    LeaderboardElvAdapter.NotifyDataSetInvalidated();
+                }
+                LeaderboardElv.ExpandGroup(0);
+            });
         }
 
         private static List<LeaderboardSnapshot> GetLatestSnapshots(List<Leaderboard> competitions)
@@ -160,8 +174,8 @@ namespace R3ELeaderboardViewer.Fragments
         {
             var username = RaceRoomUsernameInput.Text;
             username = username.Length == 0 ? null : username;
-            
-            var valid = await FirebaseManager.UserData.SaveRaceRoomUserName(username);
+
+            var valid = await FirebaseManager.UserData.SaveRaceRoomUserName(username, CompetitionsUpdated);
             SetRaceRoomUsernameValid(valid);
             if (!valid)
             {

@@ -46,20 +46,43 @@ namespace R3ELeaderboardViewer.Firebase
             return LoadRaceRoomUser();
         }
 
-        public async Task<bool> SaveRaceRoomUserName(string raceRoomUserName)
+        public async Task<bool> SaveRaceRoomUserName(string raceRoomUserName, Action<UserData> callback)
         {
             var id = await ValidateRaceRoomUserName(raceRoomUserName);
             if (id == null && raceRoomUserName != null)
             {
                 return false;
             }
-            if (RaceRoomUserName != raceRoomUserName) { 
+            if (RaceRoomUserName != raceRoomUserName) {
+                var oldId = RaceRoomUserId;
                 RaceRoomUserName = raceRoomUserName;
                 RaceRoomUserId = id;
 
-                await SaveFields();
+                var oldRecentCompetitions = RecentCompetitions;
+                if (oldId != null)
+                {
+                    RecentCompetitions.Clear();
+                    callback(this);
+                }
+                var transaction = CrossCloudFirestore.Current.Instance.RunTransactionAsync(async transaction =>
+                {
+                    await SaveFields();
 
-                _ = LoadRaceRoomUser();
+                    if (oldId != null)
+                    {
+                        var tasks = oldRecentCompetitions.Values.Select(comp => comp.Delete()).ToArray();
+                        await Task.WhenAll(tasks);
+                    }
+                });
+                _ = transaction.ContinueWith(task =>
+                {
+                    task.Result.ContinueWith(async task =>
+                    {
+                        await LoadRaceRoomUser();
+                        callback(this);
+                    });
+                });
+
                 return raceRoomUserName != null;
             }
             return false;
