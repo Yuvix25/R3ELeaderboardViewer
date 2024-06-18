@@ -16,7 +16,6 @@ namespace R3ELeaderboardViewer.Views
 
         private List<EventHandler> ClickListeners = new List<EventHandler>();
 
-        public int ClickListenersCount => ClickListeners.Count;
         public void AddClickListener(EventHandler listener)
         {
             ClickListeners.Add(listener);

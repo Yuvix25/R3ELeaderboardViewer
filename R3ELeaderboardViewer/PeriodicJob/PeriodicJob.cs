@@ -12,9 +12,6 @@ namespace R3ELeaderboardViewer.PeriodicJob
     {
         public static readonly string TAG = "R3ELeaderboardViewer:" + typeof(PeriodicJob).Name;
         public static readonly string MAIN_NOTIFICATION_TITLE = "R3E Leaderboard Viewer";
-        public static readonly string NEW_COMP_NOTIFICATION_TITLE = "New competition";
-        public static readonly string EXISTING_COMP_NOTIFICATION_TITLE = "Updated competition";
-        public static readonly string EXPIRED_COMP_NOTIFICATION_TITLE = "Competition ended";
 
         private void StartForegroundService()
         {

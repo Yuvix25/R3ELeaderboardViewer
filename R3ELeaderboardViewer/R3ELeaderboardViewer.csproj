@@ -78,7 +78,6 @@
     <Compile Include="MainActivity.cs" />
     <AndroidResource Include="Resources\layout\leaderboard_viewer.xml" />
     <Compile Include="Notifications.cs" />
-    <Compile Include="PeriodicJob\BootReceiver.cs" />
     <Compile Include="PeriodicJob\PeriodicJob.cs" />
     <Compile Include="PeriodicJob\Receiver.cs" />
     <Compile Include="RaceRoomApiManager.cs" />
