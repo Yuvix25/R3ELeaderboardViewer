@@ -146,8 +146,8 @@ namespace R3ELeaderboardViewer.Firebase
             try
             {
                 var newSnaps = await RaceRoomApiManager.FetchActiveCompetitions((int)RaceRoomUserId, RecentCompetitions.ToDictionary(x => x.Value.LeaderboardId, x => x.Value)) ?? new Dictionary<int, LeaderboardSnapshot>();
-                var expired = RecentCompetitions.Where(pair => !newSnaps.ContainsKey(pair.Value.LeaderboardId));
-                var existing = RecentCompetitions.Where(pair => newSnaps.ContainsKey(pair.Value.LeaderboardId));
+                var expired = RecentCompetitions.Where(pair => pair.Value.EndDate.Value.ToDateTime() < DateTime.Now);
+                var existing = RecentCompetitions.Where(pair => pair.Value.EndDate.Value.ToDateTime() < DateTime.Now);
                 var newComps = newSnaps.Values.Select(snap => snap.Parent).Where(comp => !RecentCompetitions.ContainsKey(comp.FirebaseId)).ToArray();
                 Log.Debug(TAG, "Found " + expired.Count() + " competitions that are inactive for over a week");
                 await (await CrossCloudFirestore.Current.Instance.RunTransactionAsync(async transaction =>
